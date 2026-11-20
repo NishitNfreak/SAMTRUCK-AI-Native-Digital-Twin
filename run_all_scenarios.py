@@ -470,12 +470,16 @@ def run_single_scenario(
     ambient_traffic_rate_vpm: float = 18.0,
     ambient_traffic_seed: int | None = None,
     event_console: bool = False,
+    output_id: str | None = None,
+    refuse_existing_results: bool = False,
 ) -> tuple[bool, dict]:
     prepare_traci()
     import traci  # type: ignore
 
     scenario_id = spec["id"]
-    output_dir = RESULTS_DIR / scenario_id
+    output_dir = RESULTS_DIR / (output_id or scenario_id)
+    if refuse_existing_results and output_dir.exists():
+        raise FileExistsError(f"Refusing to overwrite existing results directory: {output_dir}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     telemetry_file = output_dir / "telemetry.csv"
@@ -1103,6 +1107,8 @@ def main() -> None:
     parser.add_argument("--ambient-traffic-rate", type=float, default=18.0, help="Ambient traffic requests per simulated minute (opt-in)")
     parser.add_argument("--ambient-traffic-seed", type=int, default=None, help="Optional seed isolated from scenario, sensor, and V2X RNGs")
     parser.add_argument("--event-console", action="store_true", help="Print scenario-event and ambient-traffic transitions in the live terminal")
+    parser.add_argument("--output-id", default=None, help="Write one run to results/<output-id> instead of results/<scenario>")
+    parser.add_argument("--refuse-existing-results", action="store_true", help="Fail instead of overwriting an existing results directory")
 
     args = parser.parse_args()
 
@@ -1110,6 +1116,8 @@ def main() -> None:
         parser.error("--twin-executive requires --twin-advisor")
     if args.ambient_traffic_rate <= 0:
         parser.error("--ambient-traffic-rate must be positive")
+    if args.scenario == "all" and args.output_id:
+        parser.error("--output-id is only supported for one scenario at a time")
 
     if args.list:
         print(f"Available Scenarios in Catalog ({len(specs)} total):")
@@ -1144,7 +1152,8 @@ def main() -> None:
                             twin_advisor=args.twin_advisor, twin_advisor_period_s=args.twin_advisor_period,
                             twin_executive=args.twin_executive, twin_executive_period_s=args.twin_executive_period,
                             ambient_random_traffic=args.ambient_random_traffic, ambient_traffic_rate_vpm=args.ambient_traffic_rate,
-                            ambient_traffic_seed=args.ambient_traffic_seed, event_console=args.event_console)
+                            ambient_traffic_seed=args.ambient_traffic_seed, event_console=args.event_console,
+                            output_id=args.output_id, refuse_existing_results=args.refuse_existing_results)
         return
 
     if args.scenario == "all":
@@ -1199,7 +1208,8 @@ def main() -> None:
                         twin_advisor=args.twin_advisor, twin_advisor_period_s=args.twin_advisor_period,
                         twin_executive=args.twin_executive, twin_executive_period_s=args.twin_executive_period,
                         ambient_random_traffic=args.ambient_random_traffic, ambient_traffic_rate_vpm=args.ambient_traffic_rate,
-                        ambient_traffic_seed=args.ambient_traffic_seed, event_console=args.event_console)
+                        ambient_traffic_seed=args.ambient_traffic_seed, event_console=args.event_console,
+                        output_id=args.output_id, refuse_existing_results=args.refuse_existing_results)
 
 
 if __name__ == "__main__":
