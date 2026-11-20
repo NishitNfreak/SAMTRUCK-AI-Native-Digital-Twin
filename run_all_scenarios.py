@@ -10,6 +10,7 @@ import json
 import math
 import random
 import sys
+import xml.etree.ElementTree as ET
 from dataclasses import asdict
 from pathlib import Path
 
@@ -19,6 +20,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from samtruck.config import SUMO_HOME, SimulationConfig
+from samtruck.ambient_traffic import SeededAmbientTraffic
 from samtruck.controller import CACCController
 from samtruck.evaluator_console import EvaluatorConsole
 from samtruck.executive import ActiveExecutive
@@ -302,6 +304,32 @@ def add_city_vehicle_safe(traci, route_edges: list[str], vehicle_id: str, positi
         return False
 
 
+def load_ambient_edge_pairs() -> list[tuple[str, str]]:
+    """Load valid city origin/destination candidates without touching routes."""
+    route_file = CITY_DIR / "city_traffic.rou.xml"
+    root = ET.parse(route_file).getroot()
+    return [
+        (trip.attrib["from"], trip.attrib["to"])
+        for trip in root.findall("trip")
+        if trip.attrib.get("from") and trip.attrib.get("to")
+    ]
+
+
+def add_ambient_vehicle_safe(traci, request, now: float) -> bool:
+    """Resolve and insert one SUMO-controlled ambient car, or safely skip it."""
+    try:
+        route_result = traci.simulation.findRoute(request.origin_edge, request.destination_edge)
+        edges = list(route_result.edges)
+        if not edges:
+            return False
+        route_id = f"{request.vehicle_id}_route"
+        traci.route.add(route_id, edges)
+        traci.vehicle.add(request.vehicle_id, route_id, typeID="passenger", depart="now", departLane="best", departSpeed="max")
+        return True
+    except Exception:
+        return False
+
+
 def inject_relative_vehicle_safe(traci, event_id: str, leader_id: str, distance_ahead: float, speed: float, now: float) -> str | None:
     vehicle_id = f"event_{event_id}"
     if vehicle_id in traci.vehicle.getIDList() or vehicle_id in traci.vehicle.getLoadedIDList():
@@ -438,6 +466,10 @@ def run_single_scenario(
     twin_advisor_period_s: float = 1.0,
     twin_executive: bool = False,
     twin_executive_period_s: float = 1.0,
+    ambient_random_traffic: bool = False,
+    ambient_traffic_rate_vpm: float = 18.0,
+    ambient_traffic_seed: int | None = None,
+    event_console: bool = False,
 ) -> tuple[bool, dict]:
     prepare_traci()
     import traci  # type: ignore
@@ -459,6 +491,7 @@ def run_single_scenario(
     degradation_summary_file = output_dir / "twin_degradation_summary.json"
     sensor_measurements_file = output_dir / "twin_sensor_measurements.csv"
     vehicle_lifecycle_file = output_dir / "sumo_vehicle_lifecycle.csv"
+    ambient_traffic_file = output_dir / "ambient_traffic.csv"
     evaluator_console_file = output_dir / "evaluator_console.jsonl"
     live_console = EvaluatorConsole(evaluator_console_file, period_s=evaluator_console_period_s) if evaluator_console else None
     advisor_file = output_dir / "advisor_decisions.jsonl"
@@ -475,6 +508,11 @@ def run_single_scenario(
 
     binary = SUMO_HOME / "bin" / ("sumo-gui.exe" if gui else "sumo.exe")
     command = [str(binary), "-c", str(CITY_DIR / "montreal.sumocfg"), "--start", "--delay", "50"]
+    # The city config has a 90 s end time.  A bounded long run overrides it.
+    # Fully unbounded runs are deliberately excluded because this runner keeps
+    # complete telemetry rows in memory for its post-run evaluation pipeline.
+    if duration > 90.0:
+        command.extend(["--end", str(int(math.ceil(duration + 30.0)))])
     if phase_2_2d_seed_policy is not None:
         command.extend(["--seed", str(phase_2_2d_seed_policy["sumo_seed"])])
     if not gui:
@@ -519,6 +557,15 @@ def run_single_scenario(
     sensor_measurement_rows: list[dict] = []
     vehicle_lifecycle_rows: list[dict] = []
     executive_action_rows: list[dict] = []
+    ambient_traffic_rows: list[dict[str, object]] = []
+    ambient_generator = (
+        SeededAmbientTraffic(
+            load_ambient_edge_pairs(),
+            seed=int(spec.get("seed", 20260929) if ambient_traffic_seed is None else ambient_traffic_seed),
+            rate_vehicles_per_minute=ambient_traffic_rate_vpm,
+        )
+        if ambient_random_traffic else None
+    )
 
     injected_vehicles: dict[str, str] = {}
     event_statuses: dict[int, dict] = {}  # index -> event_log_record
@@ -551,6 +598,21 @@ def run_single_scenario(
                 })
             collisions_count += len(traci.simulation.getCollidingVehiclesIDList())
 
+            if ambient_generator is not None:
+                for request in ambient_generator.due_requests(now):
+                    inserted = add_ambient_vehicle_safe(traci, request, now)
+                    ambient_traffic_rows.append({
+                        "simulation_time_s": now,
+                        "vehicle_id": request.vehicle_id,
+                        "origin_edge": request.origin_edge,
+                        "destination_edge": request.destination_edge,
+                        "scheduled_time_s": request.scheduled_time_s,
+                        "inserted": inserted,
+                    })
+                    if event_console:
+                        state = "INSERTED" if inserted else "SKIPPED"
+                        print(f"t = {now:.1f}s | AMBIENT {state} {request.vehicle_id}")
+
             # Handle Event Triggers & Continuous Retry during Active Window
             for index, event in enumerate(spec.get("events", [])):
                 at_s = float(event.get("at_s", 0.0))
@@ -568,6 +630,8 @@ def run_single_scenario(
                     }
                     event_statuses[index] = event_rec
                     events_log.append(event_rec)
+                    if event_console:
+                        print(f"t = {now:.1f}s | EVENT DETECTED type={kind} scheduled={at_s:.1f}s duration={dur_s:.1f}s")
 
                 # Retry pending unapplied events during active window
                 event_rec = event_statuses.get(index)
@@ -628,6 +692,10 @@ def run_single_scenario(
                     elif kind in {"leader_speed", "traffic_stop", "emergency_brake", "v2x_delay", "packet_loss", "v2x_outage", "platoon_split"}:
                         event_rec["applied"] = True
                         event_rec["detail"] = f"{kind} event activated in scenario execution loop"
+
+                if event_console and event_rec and event_rec["applied"] and not event_rec.get("console_applied_reported", False):
+                    print(f"t = {now:.1f}s | EVENT APPLIED type={kind} detail={event_rec['detail']}")
+                    event_rec["console_applied_reported"] = True
 
             # Final status update for expired events
             for index, event in enumerate(spec.get("events", [])):
@@ -962,6 +1030,13 @@ def run_single_scenario(
             writer.writeheader()
             writer.writerows(vehicle_lifecycle_rows)
 
+    if ambient_generator is not None:
+        with ambient_traffic_file.open("w", newline="", encoding="utf-8") as f:
+            fields = ["simulation_time_s", "vehicle_id", "origin_edge", "destination_edge", "scheduled_time_s", "inserted"]
+            writer = csv.DictWriter(f, fieldnames=fields)
+            writer.writeheader()
+            writer.writerows(ambient_traffic_rows)
+
     events_file.write_text(json.dumps(events_log, indent=2), encoding="utf-8")
     degradation_summary = {
         "scenario_id": scenario_id,
@@ -1024,11 +1099,17 @@ def main() -> None:
     parser.add_argument("--twin-advisor-period", type=float, default=1.0, help="Simulation-time seconds between passive advisor blocks")
     parser.add_argument("--twin-executive", action="store_true", help="Opt in to bounded executive controller parameter changes")
     parser.add_argument("--twin-executive-period", type=float, default=1.0, help="Simulation-time seconds between executive status blocks")
+    parser.add_argument("--ambient-random-traffic", action="store_true", help="Inject seeded SUMO-controlled ambient traffic; platoon route remains fixed")
+    parser.add_argument("--ambient-traffic-rate", type=float, default=18.0, help="Ambient traffic requests per simulated minute (opt-in)")
+    parser.add_argument("--ambient-traffic-seed", type=int, default=None, help="Optional seed isolated from scenario, sensor, and V2X RNGs")
+    parser.add_argument("--event-console", action="store_true", help="Print scenario-event and ambient-traffic transitions in the live terminal")
 
     args = parser.parse_args()
 
     if args.twin_executive and not args.twin_advisor:
         parser.error("--twin-executive requires --twin-advisor")
+    if args.ambient_traffic_rate <= 0:
+        parser.error("--ambient-traffic-rate must be positive")
 
     if args.list:
         print(f"Available Scenarios in Catalog ({len(specs)} total):")
@@ -1044,12 +1125,26 @@ def main() -> None:
             parser.error("--scenario random_journey requires a finite --duration <seconds> argument")
         master_spec = schedule_master(args.seed, specs)
         master_spec["duration_s"] = args.duration
+        # The long randomized path has an explicit four-way seed contract:
+        # SUMO demand, scheduled disturbances, sensors, and Twin V2X can be
+        # replayed exactly with the same --seed value.
+        master_spec["phase_2_2d"] = {"sumo_seed": args.seed}
+        master_spec["twin"] = {"sensor_seed": args.seed, "v2x_seed": args.seed}
+        # A bounded demonstration validates only events that can actually
+        # start during its requested horizon.  The Twin never receives this
+        # schedule; it still reacts exclusively to DTOs and delivered V2X.
+        master_spec["events"] = [
+            event for event in master_spec["events"]
+            if float(event.get("at_s", 0.0)) < args.duration
+        ]
         if args.fast_demo:
             master_spec, args.duration = apply_fast_demo(master_spec, args.duration)
         run_single_scenario(master_spec, gui=args.gui, duration_override=args.duration,
                             evaluator_console=args.evaluator_console, evaluator_console_period_s=args.evaluator_console_period,
                             twin_advisor=args.twin_advisor, twin_advisor_period_s=args.twin_advisor_period,
-                            twin_executive=args.twin_executive, twin_executive_period_s=args.twin_executive_period)
+                            twin_executive=args.twin_executive, twin_executive_period_s=args.twin_executive_period,
+                            ambient_random_traffic=args.ambient_random_traffic, ambient_traffic_rate_vpm=args.ambient_traffic_rate,
+                            ambient_traffic_seed=args.ambient_traffic_seed, event_console=args.event_console)
         return
 
     if args.scenario == "all":
@@ -1069,7 +1164,11 @@ def main() -> None:
                                                            twin_advisor=args.twin_advisor,
                                                            twin_advisor_period_s=args.twin_advisor_period,
                                                            twin_executive=args.twin_executive,
-                                                           twin_executive_period_s=args.twin_executive_period)
+                                                           twin_executive_period_s=args.twin_executive_period,
+                                                           ambient_random_traffic=args.ambient_random_traffic,
+                                                           ambient_traffic_rate_vpm=args.ambient_traffic_rate,
+                                                           ambient_traffic_seed=args.ambient_traffic_seed,
+                                                           event_console=args.event_console)
                 summary_results.append((s_id, "PASS" if pass_status else "FAIL", metrics["pass_fail"]["reason"]))
             except Exception as ex:
                 print(f"Scenario {s_id} encountered an error: {ex}")
@@ -1098,7 +1197,9 @@ def main() -> None:
     run_single_scenario(spec, gui=args.gui, duration_override=duration_override,
                         evaluator_console=args.evaluator_console, evaluator_console_period_s=args.evaluator_console_period,
                         twin_advisor=args.twin_advisor, twin_advisor_period_s=args.twin_advisor_period,
-                        twin_executive=args.twin_executive, twin_executive_period_s=args.twin_executive_period)
+                        twin_executive=args.twin_executive, twin_executive_period_s=args.twin_executive_period,
+                        ambient_random_traffic=args.ambient_random_traffic, ambient_traffic_rate_vpm=args.ambient_traffic_rate,
+                        ambient_traffic_seed=args.ambient_traffic_seed, event_console=args.event_console)
 
 
 if __name__ == "__main__":
