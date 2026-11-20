@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<edges xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/edges_file.xsd">
+    <!-- Highway Edges (3 Lanes, 100 km/h = 27.78 m/s) -->
+    <edge id="H_0_1" from="H0" to="H1" numLanes="3" speed="27.78"/>
+    <edge id="H_1_2" from="H1" to="H2" numLanes="3" speed="27.78"/>
+    <edge id="H_2_3" from="H2" to="H3" numLanes="3" speed="27.78"/>
+    <edge id="H_3_4" from="H3" to="H4" numLanes="3" speed="27.78"/>
+
+    <!-- Interchange Off-ramp from Highway H4 to City Entrance J1 -->
+    <edge id="RAMP_H4_J1" from="H4" to="J1" numLanes="2" speed="20.0"/>
+
+    <!-- City Horizontal Arterials (2 Lanes, 50 km/h = 13.89 m/s) -->
+    <edge id="J1_J2" from="J1" to="J2" numLanes="2" speed="13.89"/>
+    <edge id="J2_J3" from="J2" to="J3" numLanes="2" speed="13.89"/>
+    <edge id="J3_J4" from="J3" to="J4" numLanes="2" speed="13.89"/>
+
+    <edge id="J5_J6" from="J5" to="J6" numLanes="2" speed="13.89"/>
+    <edge id="J6_J7" from="J6" to="J7" numLanes="2" speed="13.89"/>
+    <edge id="J7_J8" from="J7" to="J8" numLanes="2" speed="13.89"/>
+
+    <edge id="J9_J10" from="J9" to="J10" numLanes="2" speed="13.89"/>
+    <edge id="J10_J11" from="J10" to="J11" numLanes="2" speed="13.89"/>
+    <edge id="J11_J12" from="J11" to="J12" numLanes="2" speed="13.89"/>
+
+    <!-- City Vertical Avenues (2 Lanes) -->
+    <edge id="J1_J5" from="J1" to="J5" numLanes="2" speed="13.89"/>
+    <edge id="J5_J9" from="J5" to="J9" numLanes="2" speed="13.89"/>
+
+    <edge id="J2_J6" from="J2" to="J6" numLanes="2" speed="13.89"/>
+    <edge id="J6_J10" from="J6" to="J10" numLanes="2" speed="13.89"/>
+
+    <edge id="J3_J7" from="J3" to="J7" numLanes="2" speed="13.89"/>
+    <edge id="J7_J11" from="J7" to="J11" numLanes="2" speed="13.89"/>
+
+    <edge id="J4_J8" from="J4" to="J8" numLanes="2" speed="13.89"/>
+    <edge id="J8_J12" from="J8" to="J12" numLanes="2" speed="13.89"/>
+
+    <!-- City Outlet -->
+    <edge id="J12_COUT" from="J12" to="C_OUT" numLanes="2" speed="13.89"/>
+</edges>

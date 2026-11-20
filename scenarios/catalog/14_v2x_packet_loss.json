@@ -1,0 +1,1 @@
+{"id":"v2x_packet_loss","title":"V2X Packet Loss","duration_s":90,"events":[{"at_s":20,"type":"packet_loss","loss_rate":0.3,"duration_s":15}]}

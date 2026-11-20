@@ -1,0 +1,1 @@
+{"id":"leader_acceleration","title":"Leader Acceleration","duration_s":90,"events":[{"at_s":20,"type":"leader_speed","speed_mps":15,"duration_s":15}]}

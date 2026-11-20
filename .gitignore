@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+outputs/
+
+# Local SUMO distribution; install/download it separately rather than versioning binaries.
+runtime/
+
+# Generated simulation artefacts.  Recreate them with the documented runners.
+results/

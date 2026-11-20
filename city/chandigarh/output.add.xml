@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-09-29 07:15:34.818015 by Eclipse SUMO osmWebWizard.py v1_27_1+0000-7717f2379d9
+  options: <doubleminus>test-output E:\SAMSUNGTRUCK\city\chandigarh <doubleminus>bbox 76.774,30.737,76.786,30.747 <doubleminus>demand passenger:2f2 -e 600 -v
+-->
+
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+   <edgeData id="wizard_example" period="3600" file="edgeData.xml"/>
+</additional>

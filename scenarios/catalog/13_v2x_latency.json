@@ -1,0 +1,1 @@
+{"id":"v2x_latency","title":"V2X Latency","duration_s":90,"events":[{"at_s":20,"type":"v2x_delay","latency_ms":350,"duration_s":15}]}

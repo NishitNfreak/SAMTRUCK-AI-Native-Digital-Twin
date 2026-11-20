@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+    <vType id="passenger" vClass="passenger" accel="1.8" decel="4.5" sigma="0.5"/>
+    <vType id="platoon_truck" vClass="truck" length="12" minGap="3.5"
+           accel="1.2" decel="4.5" emergencyDecel="7.0" sigma="0.0"
+           maxSpeed="25" color="0,130,255"/>
+</routes>

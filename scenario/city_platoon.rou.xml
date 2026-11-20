@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <!-- Heavy Truck Vehicle Type (40-ton articulated HGV) -->
+    <vType id="HGV" accel="1.2" decel="4.5" emergencyDecel="7.0" length="16.5" minGap="3.0" maxSpeed="30.0"
+           guiShape="truck/semitrailer" color="0,102,204" vClass="truck"/>
+    
+    <!-- Secondary City Traffic Vehicle Type -->
+    <vType id="car" accel="2.6" decel="4.5" length="4.5" minGap="2.0" maxSpeed="20.0"
+           guiShape="passenger" color="200,200,200" vClass="passenger"/>
+
+    <!-- Main Highway-to-City Platoon Route -->
+    <route id="platoon_route" edges="H_0_1 H_1_2 H_2_3 H_3_4 RAMP_H4_J1 J1_J5 J5_J6 J6_J7 J7_J11 J11_J12 J12_COUT"/>
+
+    <!-- Cross City Traffic Routes for realism -->
+    <route id="city_cross_1" edges="J9_J10 J10_J11 J11_J12 J12_COUT"/>
+    <route id="city_cross_2" edges="J2_J6 J6_J10"/>
+
+    <!-- Platoon Vehicles (Leader + 2 Followers) -->
+    <vehicle id="truck_0" type="HGV" route="platoon_route" depart="0.0" departPos="120.0" departSpeed="18.0"/>
+    <vehicle id="truck_1" type="HGV" route="platoon_route" depart="0.0" departPos="80.0"  departSpeed="18.0"/>
+    <vehicle id="truck_2" type="HGV" route="platoon_route" depart="0.0" departPos="40.0"  departSpeed="18.0"/>
+
+    <!-- Background Ambient Traffic -->
+    <flow id="bg_car_1" type="car" route="city_cross_1" begin="5.0" end="80.0" number="10"/>
+    <flow id="bg_car_2" type="car" route="city_cross_2" begin="10.0" end="80.0" number="8"/>
+</routes>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/additional_file.xsd">
+    <!-- City Buildings & Parks along the grid -->
+    <poly id="bldg_1" type="building" color="180,180,200" fill="true" shape="2050,380 2250,380 2250,220 2050,220"/>
+    <poly id="bldg_2" type="building" color="160,160,180" fill="true" shape="2350,380 2550,380 2550,220 2350,220"/>
+    <poly id="park_1" type="park" color="100,200,100" fill="true" shape="2650,380 2850,380 2850,220 2650,220"/>
+    <poly id="bldg_3" type="building" color="170,170,190" fill="true" shape="2050,180 2250,180 2250,20 2050,20"/>
+    <poly id="bldg_4" type="building" color="190,190,210" fill="true" shape="2350,180 2550,180 2550,20 2350,20"/>
+</additional>

@@ -1,0 +1,1 @@
+{"id":"v2x_latency_packet_loss","title":"V2X Latency Plus Packet Loss","duration_s":90,"events":[{"at_s":20,"type":"v2x_delay","latency_ms":350,"duration_s":15},{"at_s":20,"type":"packet_loss","loss_rate":0.3,"duration_s":15}]}

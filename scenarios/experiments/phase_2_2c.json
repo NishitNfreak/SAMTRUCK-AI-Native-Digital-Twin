@@ -1,0 +1,23 @@
+{
+  "schema_version": "2.2C",
+  "base_scenario": "normal_platooning",
+  "duration_s": 12.0,
+  "experiments": [
+    {"id": "p22c_baseline", "seeds": [20260929, 20260930], "twin": {}, "twin_only_degradations": []},
+    {"id": "p22c_noise_low", "seeds": [20260929], "twin": {"radar_noise_std_m": 0.25, "odometry_speed_noise_std_mps": 0.10}, "twin_only_degradations": []},
+    {"id": "p22c_noise_medium", "seeds": [20260929, 20260930], "twin": {"radar_noise_std_m": 0.75, "odometry_speed_noise_std_mps": 0.30}, "twin_only_degradations": []},
+    {"id": "p22c_noise_high", "seeds": [20260929], "twin": {"radar_noise_std_m": 1.50, "odometry_speed_noise_std_mps": 0.60}, "twin_only_degradations": []},
+    {"id": "p22c_radar_short", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_radar_dropout", "at_s": 3.0, "duration_s": 1.0}]},
+    {"id": "p22c_radar_medium", "seeds": [20260929, 20260930], "twin": {}, "twin_only_degradations": [{"type": "twin_radar_dropout", "at_s": 3.0, "duration_s": 3.0}]},
+    {"id": "p22c_radar_extended", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_radar_dropout", "at_s": 3.0, "duration_s": 6.0}]},
+    {"id": "p22c_odometry_short", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_odometry_dropout", "at_s": 3.0, "duration_s": 1.0}]},
+    {"id": "p22c_odometry_medium", "seeds": [20260929, 20260930], "twin": {}, "twin_only_degradations": [{"type": "twin_odometry_dropout", "at_s": 3.0, "duration_s": 3.0}]},
+    {"id": "p22c_odometry_extended", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_odometry_dropout", "at_s": 3.0, "duration_s": 6.0}]},
+    {"id": "p22c_v2x_latency_200", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_v2x_latency", "at_s": 3.0, "duration_s": 6.0, "latency_ms": 200.0}]},
+    {"id": "p22c_v2x_latency_600", "seeds": [20260929, 20260930], "twin": {}, "twin_only_degradations": [{"type": "twin_v2x_latency", "at_s": 3.0, "duration_s": 6.0, "latency_ms": 600.0}]},
+    {"id": "p22c_v2x_loss_20", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_v2x_packet_loss", "at_s": 3.0, "duration_s": 6.0, "loss_rate": 0.20}]},
+    {"id": "p22c_v2x_loss_30", "seeds": [20260929, 20260930], "twin": {}, "twin_only_degradations": [{"type": "twin_v2x_packet_loss", "at_s": 3.0, "duration_s": 6.0, "loss_rate": 0.30}]},
+    {"id": "p22c_v2x_loss_40", "seeds": [20260929], "twin": {}, "twin_only_degradations": [{"type": "twin_v2x_packet_loss", "at_s": 3.0, "duration_s": 6.0, "loss_rate": 0.40}]},
+    {"id": "p22c_v2x_outage", "seeds": [20260929, 20260930], "twin": {}, "twin_only_degradations": [{"type": "twin_v2x_outage", "at_s": 3.0, "duration_s": 4.0}]}
+  ]
+}

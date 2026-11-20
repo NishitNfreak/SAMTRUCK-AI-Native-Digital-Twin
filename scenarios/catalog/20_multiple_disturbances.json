@@ -1,0 +1,1 @@
+{"id":"multiple_disturbances","title":"Multiple Disturbances","duration_s":100,"events":[{"at_s":18,"type":"v2x_delay","latency_ms":350,"duration_s":12},{"at_s":22,"type":"cut_in","duration_s":15},{"at_s":28,"type":"packet_loss","loss_rate":0.3,"duration_s":12},{"at_s":34,"type":"emergency_brake","duration_s":4}]}

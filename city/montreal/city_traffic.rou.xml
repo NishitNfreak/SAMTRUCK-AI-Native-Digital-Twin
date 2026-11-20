@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+    <trip id="city_0" type="passenger" depart="25" from="-165217870#1" to="165217870#1"/>
+    <trip id="city_1" type="passenger" depart="27" from="455083994#1" to="4320471#9"/>
+    <trip id="city_2" type="passenger" depart="29" from="-455083993#3" to="329694554#6"/>
+    <trip id="city_3" type="passenger" depart="31" from="165217834#3" to="330150736#0"/>
+    <trip id="city_4" type="passenger" depart="33" from="165217827#3" to="4320471#14"/>
+    <trip id="city_5" type="passenger" depart="35" from="165217834#3" to="41258971#1"/>
+    <trip id="city_6" type="passenger" depart="37" from="-165217827#1" to="465411711#1"/>
+    <trip id="city_7" type="passenger" depart="39" from="329384217#5" to="-465411715#2"/>
+    <trip id="city_8" type="passenger" depart="41" from="329384217#2" to="-455083994#2"/>
+    <trip id="city_9" type="passenger" depart="43" from="4687641#13" to="41258973#2"/>
+</routes>

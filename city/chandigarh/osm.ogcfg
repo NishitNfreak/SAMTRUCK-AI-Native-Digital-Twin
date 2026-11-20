@@ -1,0 +1,6 @@
+<configuration>
+    <bbox value="76.774,30.737,76.786,30.747"/>
+    <output-dir value="E:\SAMSUNGTRUCK\city\chandigarh"/>
+    <gzip value="True"/>
+    <verbose value="True"/>
+</configuration>

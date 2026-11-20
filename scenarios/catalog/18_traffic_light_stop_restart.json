@@ -1,0 +1,1 @@
+{"id":"traffic_light_stop_restart","title":"Traffic Light Stop Restart","duration_s":90,"events":[{"at_s":20,"type":"traffic_stop","duration_s":8,"source":"traffic_light"}]}

@@ -1,0 +1,1 @@
+{"id":"random_journey","title":"Endless Randomized Master Journey","duration_s":0,"seed":20260929,"random_window_s":[18,45],"event_types":["leader_speed","emergency_brake","cut_in","slow_vehicle","traffic_stop","platoon_merge","platoon_split","lane_change","traffic_burst","v2x_delay","packet_loss","v2x_outage","roadwork","onramp_merge"]}

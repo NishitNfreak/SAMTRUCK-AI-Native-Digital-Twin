@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 2026-09-29T09:39:21.864763+05:30 by Eclipse SUMO duarouter 1.27.1
+<duarouterConfiguration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="city\montreal\concordia_sgw_region.net.xml"/>
+        <route-files value="E:\sumo-traffic-simulation-main\inputs\custom_route.rou.xml"/>
+    </input>
+
+    <output>
+        <output-file value="city\montreal\platoon_route.rou.xml"/>
+    </output>
+
+    <report>
+        <ignore-errors value="true"/>
+        <no-step-log value="true"/>
+    </report>
+
+</duarouterConfiguration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+    <vType id="emergency" vClass="emergency" color="red"/>
+    <vehicle id="custom_vehicle_0" type="emergency" depart="0.00">
+        <route edges="455083968#1 455083976#0 41258973#1 41258973#2 -455083994#2 -455083993#3 -455083993#2 -165217827#3"/>
+    </vehicle>
+</routes>
