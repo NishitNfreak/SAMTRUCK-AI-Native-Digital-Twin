@@ -504,6 +504,13 @@ def run_single_scenario(
     if twin_executive and not twin_advisor:
         raise ValueError("The active executive requires TwinAdvisor decisions.")
     executive_file = output_dir / "executive_actions.jsonl"
+    # Keep the executive trace observable during a live demo.  This stream is
+    # logging-only: it receives actions after they are computed and never
+    # feeds anything back into the controller or executive.
+    executive_stream = (
+        executive_file.open("w", encoding="utf-8", buffering=1)
+        if twin_executive else None
+    )
 
     duration = spec["duration_s"] if duration_override is None else duration_override
     rng = random.Random(spec.get("seed", 20260929))
@@ -942,6 +949,10 @@ def run_single_scenario(
                             decision for decision in decisions if decision.vehicle_id in follower_controllers
                         )
                         executive_action_rows.extend(asdict(action) for action in actions)
+                        if executive_stream is not None:
+                            for action in actions:
+                                executive_stream.write(json.dumps(asdict(action), allow_nan=False) + "\n")
+                            executive_stream.flush()
                         if next_executive_print_s is None:
                             next_executive_print_s = now
                         if now + 1e-9 >= next_executive_print_s:
@@ -965,6 +976,8 @@ def run_single_scenario(
             live_console.close()
         if advisor_console is not None:
             advisor_console.close()
+        if executive_stream is not None:
+            executive_stream.close()
 
     # Save Output CSVs and JSONs
     if telemetry_rows:
@@ -1011,11 +1024,6 @@ def run_single_scenario(
         writer = csv.DictWriter(f, fieldnames=fields)
         writer.writeheader()
         writer.writerows(twin_message_rows)
-
-    if executive is not None:
-        with executive_file.open("w", encoding="utf-8") as f:
-            for row in executive_action_rows:
-                f.write(json.dumps(row, allow_nan=False) + "\n")
 
     if phase_2_2d_seed_policy is not None:
         with sensor_measurements_file.open("w", newline="", encoding="utf-8") as f:
